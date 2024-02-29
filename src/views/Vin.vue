@@ -13,6 +13,7 @@ export default {
     }
   },
   created() {
+    document.title='VIN'
     this.vin = getRandomVin()
   }
 }
