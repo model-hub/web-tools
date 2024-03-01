@@ -1,6 +1,6 @@
 <template>
   <div style="display: flex; justify-content: center; margin-top: 10rem">
-    <span>{{ vin }}</span>
+    <h3>{{ vin }}</h3>
   </div>
 </template>
 
