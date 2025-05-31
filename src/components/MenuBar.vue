@@ -1,7 +1,7 @@
 <template>
   <div class="menu-bar">
     <div class="menu-container">
-      <div class="logo">
+      <div class="logo" @click="navigateTo('/')">
         <span>Web Tools</span>
       </div>
       <el-menu
@@ -25,7 +25,7 @@
 
 <script>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { Document, Connection, List } from '@element-plus/icons-vue'
 
 export default {
@@ -37,6 +37,7 @@ export default {
   },
   setup() {
     const route = useRoute()
+    const router = useRouter()
     
     const menuItems = [
       {
@@ -58,9 +59,14 @@ export default {
 
     const activeIndex = computed(() => route.path)
 
+    const navigateTo = (path) => {
+      router.push(path)
+    }
+
     return {
       menuItems,
-      activeIndex
+      activeIndex,
+      navigateTo
     }
   }
 }
@@ -92,6 +98,12 @@ export default {
   color: var(--primary-color);
   display: flex;
   align-items: center;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.logo:hover {
+  opacity: 0.8;
 }
 
 .menu {
