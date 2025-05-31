@@ -80,6 +80,7 @@ export default {
   position: sticky;
   top: 0;
   z-index: 1000;
+  height: 48px;
 }
 
 .menu-container {
@@ -100,6 +101,8 @@ export default {
   align-items: center;
   cursor: pointer;
   transition: opacity 0.3s ease;
+  height: 48px;
+  line-height: 48px;
 }
 
 .logo:hover {
@@ -109,6 +112,14 @@ export default {
 .menu {
   flex: 1;
   border-bottom: none;
+  display: flex;
+  align-items: center;
+  height: 48px;
+}
+
+:deep(.el-menu) {
+  height: 48px;
+  line-height: 48px;
 }
 
 :deep(.el-menu-item) {
@@ -118,6 +129,7 @@ export default {
   font-size: 14px;
   height: 48px;
   padding: 0 16px;
+  line-height: 48px;
 }
 
 :deep(.el-menu-item.is-active) {
@@ -132,5 +144,6 @@ export default {
 
 :deep(.el-icon) {
   font-size: 16px;
+  line-height: 1;
 }
 </style> 
