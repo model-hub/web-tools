@@ -72,6 +72,8 @@
 
 <script>
 import { Document } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { copyText } from '@/assets/js/utils'
 
 export default {
   name: 'CompareView',
@@ -130,10 +132,20 @@ export default {
       this.right = ''
       this.result = ''
     },
-    copy() {
-      this.$refs.result.select()
-      document.execCommand('copy')
-      this.$message.success('复制成功')
+    async copy() {
+      const textToCopy = this.result
+      if (!textToCopy) {
+        ElMessage.warning('当前没有可复制的内容')
+        return
+      }
+
+      try {
+        await copyText(textToCopy)
+        ElMessage.success('复制成功！')
+      } catch (err) {
+        console.error('复制失败:', err)
+        ElMessage.error('复制失败，请手动复制。')
+      }
     },
     handleChange1(file) {
       const that = this

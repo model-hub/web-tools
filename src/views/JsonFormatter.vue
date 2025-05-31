@@ -1,15 +1,13 @@
 <script>
+import { ElMessage } from 'element-plus'
+import { copyText } from '@/assets/js/utils'
+
 export default {
   name: 'JsonFormatterView',
   data() {
     return {
       inputJson: '',
       formattedJson: '',
-      toast: {
-        show: false,
-        message: ''
-      },
-      toastTimer: null,
       lastFormattedJson: '',
       sortState: 0,
       compressState: 0,
@@ -33,21 +31,6 @@ export default {
     }
   },
   methods: {
-    showToast(msg) {
-      if (this.toastTimer) {
-        clearTimeout(this.toastTimer)
-        this.toastTimer = null
-      }
-
-      this.toast.message = msg
-      this.toast.show = true
-
-      this.toastTimer = setTimeout(() => {
-        this.toast.show = false
-        this.toastTimer = null
-      }, 1000)
-    },
-
     resetStates() {
       // 重置所有状态
       this.sortState = 0
@@ -72,6 +55,7 @@ export default {
         }
       } catch (e) {
         this.formattedJson = '无效的 JSON 格式'
+        ElMessage.error('无效的 JSON 格式')
       }
     },
 
@@ -86,6 +70,7 @@ export default {
         this.lastFormattedJson = this.formattedJson
       } catch (e) {
         this.formattedJson = '无效的 JSON 格式'
+        ElMessage.error('无效的 JSON 格式')
       }
     },
 
@@ -126,7 +111,7 @@ export default {
           this.sortState = 1
         }
       } catch (e) {
-        this.showToast('无效的 JSON 格式')
+        ElMessage.error('无效的 JSON 格式')
       }
     },
 
@@ -150,7 +135,7 @@ export default {
           this.compressState = 1
         }
       } catch (e) {
-        this.showToast('无效的 JSON 格式')
+        ElMessage.error('无效的 JSON 格式')
       }
     },
 
@@ -160,22 +145,20 @@ export default {
       this.resetStates()
     },
 
-    copyFormattedJson() {
+    async copyFormattedJson() {
       const textToCopy = this.formattedJson
       if (!textToCopy || textToCopy === '无效的 JSON 格式') {
-        this.showToast('当前没有可复制的内容')
+        ElMessage.warning('当前没有可复制的内容')
         return
       }
 
-      navigator.clipboard
-        .writeText(textToCopy)
-        .then(() => {
-          this.showToast('复制成功！')
-        })
-        .catch((err) => {
-          console.error('复制失败:', err)
-          this.showToast('复制失败，请手动复制。')
-        })
+      try {
+        await copyText(textToCopy)
+        ElMessage.success('复制成功！')
+      } catch (err) {
+        console.error('复制失败:', err)
+        ElMessage.error('复制失败，请手动复制。')
+      }
     }
   }
 }
