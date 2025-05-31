@@ -7,6 +7,7 @@
 <script>
 import getRandomVin from '@/assets/js/vin'
 export default {
+  name: 'VinView',
   data() {
     return {
       vin: ''
@@ -19,4 +20,18 @@ export default {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.button-group {
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+:deep(.el-button) {
+  min-width: 80px;
+}
+
+:deep(.el-button .el-icon) {
+  margin-right: 4px;
+}
+</style>

@@ -1,27 +1,49 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import Home from '../views/index.vue'
-import Compare from '../views/Compare.vue'
-import Vin from '../views/Vin.vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import Compare from '@/views/Compare.vue'
+import Vin from '@/views/Vin.vue'
+import JsonFormatter from '@/views/JsonFormatter.vue'
+
+const routes = [
+  {
+    path: '/',
+    redirect: '/compare'
+  },
+  {
+    path: '/compare',
+    name: 'Compare',
+    component: Compare,
+    meta: {
+      title: '文本对比工具'
+    }
+  },
+  {
+    path: '/vin',
+    name: 'Vin',
+    component: Vin,
+    meta: {
+      title: '车架号生成工具'
+    }
+  },
+  {
+    path: '/json',
+    name: 'Json',
+    component: JsonFormatter,
+    meta: {
+      title: 'JSON格式化工具'
+    }
+  }
+]
 
 const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [
-    {
-      path: '/',
-      name: 'home',
-      component: Home
-    },
-    {
-      path: '/compare',
-      name: 'compare',
-      component: Compare
-    },
-    {
-      path: '/vin',
-      name: 'vin',
-      component: Vin
-    }
-  ]
+  history: createWebHistory(),
+  routes
+})
+
+// 全局前置守卫，用于设置页面标题
+router.beforeEach((to, from, next) => {
+  // 设置页面标题
+  document.title = to.meta.title ? `${to.meta.title} - Web Tools` : 'Web Tools'
+  next()
 })
 
 export default router

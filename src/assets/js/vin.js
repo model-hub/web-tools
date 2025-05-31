@@ -1,246 +1,122 @@
-//车架号地区代码数组
-var areaArray = ['1', '2', '3', '6', '9', 'J', 'K', 'L', 'R', 'S', 'T', 'V', 'W', 'Y', 'Z', 'G']
+// 常量定义
+const VIN_CONSTANTS = {
+  // 车架号地区代码
+  AREA_CODES: ['1', '2', '3', '6', '9', 'J', 'K', 'L', 'R', 'S', 'T', 'V', 'W', 'Y', 'Z', 'G'],
 
-//车架号中可能出现的字符数组
-var charArray = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'P',
-  'R',
-  'S',
-  'T',
-  'V',
-  'W',
-  'X',
-  'Y'
-]
+  // 车架号中可能出现的字符
+  VALID_CHARS: ['1', '2', '3', '4', '5', '6', '7', '8', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'W', 'X', 'Y'],
 
-//车架号校验位计算数组
-var KVMACTHUP = [
-  ['A', 1],
-  ['B', 2],
-  ['C', 3],
-  ['D', 4],
-  ['E', 5],
-  ['F', 6],
-  ['G', 7],
-  ['H', 8],
-  ['I', 0],
-  ['J', 1],
-  ['K', 2],
-  ['L', 3],
-  ['M', 4],
-  ['N', 5],
-  ['O', 0],
-  ['P', 7],
-  ['Q', 8],
-  ['R', 9],
-  ['S', 2],
-  ['T', 3],
-  ['U', 4],
-  ['V', 5],
-  ['W', 6],
-  ['X', 7],
-  ['Y', 8],
-  ['Z', 9]
-]
+  // 车架号校验位计算映射
+  CHECK_DIGIT_MAP: [
+    ['A', 1], ['B', 2], ['C', 3], ['D', 4], ['E', 5], ['F', 6], ['G', 7], ['H', 8],
+    ['I', 0], ['J', 1], ['K', 2], ['L', 3], ['M', 4], ['N', 5], ['O', 0], ['P', 7],
+    ['Q', 8], ['R', 9], ['S', 2], ['T', 3], ['U', 4], ['V', 5], ['W', 6], ['X', 7],
+    ['Y', 8], ['Z', 9]
+  ],
 
-//车架号数据加权数组
-var WEIGHTVALUE = [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2]
+  // 车架号数据加权数组
+  WEIGHTS: [8, 7, 6, 5, 4, 3, 2, 10, 0, 9, 8, 7, 6, 5, 4, 3, 2],
 
-//生产年份代码(第12~13位)
-var strYear = [
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'P',
-  'R',
-  'S',
-  'T',
-  'V',
-  'W',
-  'X',
-  'Y'
-]
+  // 生产年份代码
+  YEAR_CODES: ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'W', 'X', 'Y'],
 
-//出厂顺序代码(第12~13位)
-var strCode = [
-  '0',
-  '1',
-  '2',
-  '3',
-  '4',
-  '5',
-  '6',
-  '7',
-  '8',
-  '9',
-  'A',
-  'B',
-  'C',
-  'D',
-  'E',
-  'F',
-  'G',
-  'H',
-  'J',
-  'K',
-  'L',
-  'M',
-  'N',
-  'P',
-  'R',
-  'S',
-  'T',
-  'V',
-  'W',
-  'X',
-  'Y'
-]
+  // 出厂顺序代码
+  SEQUENCE_CODES: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J', 'K', 'L', 'M', 'N', 'P', 'R', 'S', 'T', 'V', 'W', 'X', 'Y'],
 
-//出厂顺序代码(第14~17位)
-var strCodeNo = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-
-function getRandomVin() {
-  var beforeStr = prepareBeforeStr()
-  var afterStr = prepareAfterStr()
-  return spellVin(beforeStr, afterStr)
+// 世界制造商识别码
+  WMI: ['LVS', 'LSV', 'LVH', 'LFP', 'LFV', 'JT1', 'JTH', 'JM1', 'JH4', '5YJ', '1G1', '1FA', 'WBA', 'WDB', 'WAU', 'WVW', 'VF1', 'ZFF', 'SAL', 'YV1']
 }
 
-function prepareBeforeStr() {
-  var str = 'LFV'
-  for (var i = 0; i < 5; i++) {
-    str += getRandomChar(areaArray)
+class VinGenerator {
+  constructor() {
+    this.constants = VIN_CONSTANTS;
   }
-  return str
-}
 
-function getRandomChar(array) {
-  var index = getRandomInt(array.length)
-  return charArray[index]
-}
-
-function getRandomInt(n) {
-  return Math.floor(Math.random() * n)
-}
-
-function prepareAfterStr() {
-  var str = ''
-  for (var i = 0; i < 1; i++) {
-    var index = getRandomInt(strYear.length)
-    var year = strYear[index]
-    str += year
+  // 生成随机整数
+  getRandomInt(max) {
+    return Math.floor(Math.random() * max);
   }
-  str += prepareNo()
-  return str
-}
 
-function prepareNo() {
-  var numStrBuff = ''
-  for (var i = 0; i < 3; i++) {
-    var index1 = getRandomInt(strCode.length)
-    numStrBuff += strCode[index1] //第11~13位车架号
+  // 从数组中随机获取一个元素
+  getRandomElement(array) {
+    return array[this.getRandomInt(array.length)];
   }
-  for (var i = 0; i < 4; i++) {
-    var index2 = getRandomInt(strCodeNo.length)
-    numStrBuff += strCodeNo[index2] //第14~17位车架号
-  }
-  return numStrBuff
-}
 
-function spellVin(beforeStr, afterStr) {
-  var vinBuffer = ''
-  var preVin = beforeStr + 'X' + afterStr
-  var isuredCode = getIsuredCode(preVin)
-  var vin = beforeStr + isuredCode + afterStr
-  if (isVin(vin)) {
-    return vin
-  } else {
-    return spellVin(beforeStr, afterStr)
+  // 生成前部分字符串
+  generateBeforeStr() {
+    const wmi = this.getRandomElement(this.constants.WMI);
+    const chars = Array(5).fill(0).map(() => this.getRandomElement(this.constants.VALID_CHARS));
+    return wmi + chars.join('');
   }
-}
 
-function getIsuredCode(vin) {
-  var Vin = []
-  for (const s2 of vin) {
-    Vin.push(s2)
+  // 生成后部分字符串
+  generateAfterStr() {
+    const yearCode = this.getRandomElement(this.constants.YEAR_CODES);
+    const sequenceCodes = Array(3).fill(0).map(() => this.getRandomElement(this.constants.SEQUENCE_CODES));
+    const sequenceNumbers = Array(4).fill(0).map(() => this.getRandomElement(this.constants.SEQUENCE_CODES));
+    return yearCode + sequenceCodes.join('') + sequenceNumbers.join('');
   }
-  var sum = 0
-  var tempValue = 0
-  var temp
-  for (var i = 0; i < 17; i++) {
-    if (Vin[i] >= 'a' && Vin[i] <= 'z') {
-      temp = Vin[i] - 32
-    } else if (Vin[i] >= 'A' && Vin[i] <= 'Z') {
-      temp = Vin[i]
-    } else if (Vin[i] >= '0' && Vin[i] <= '9') {
-      tempValue = Vin[i]
-      temp = Vin[i]
-    } else {
-      return 'ERROR'
-    }
-    if (temp >= 'A' && temp <= 'Z') {
-      for (var j = 0; j < 26; j++) {
-        if (temp == KVMACTHUP[j][0]) {
-          tempValue = KVMACTHUP[j][1]
-        }
+
+  // 计算校验位
+  calculateCheckDigit(vin) {
+    const chars = vin.split('');
+    let sum = 0;
+
+    for (let i = 0; i < 17; i++) {
+      let value;
+      const char = chars[i].toUpperCase();
+
+      if (/[A-Z]/.test(char)) {
+        const mapping = this.constants.CHECK_DIGIT_MAP.find(([letter]) => letter === char);
+        value = mapping ? mapping[1] : 0;
+      } else {
+        value = parseInt(char, 10);
       }
+
+      sum += value * this.constants.WEIGHTS[i];
     }
-    sum += tempValue * WEIGHTVALUE[i]
+
+    const remainder = sum % 11;
+    return remainder === 10 ? 'X' : remainder.toString();
   }
-  var reslt = sum % 11
-  if (reslt != 10) {
-    return reslt + ''
-  } else {
-    return 'X'
+
+  // 验证VIN
+  validateVin(vin) {
+    if (!vin || vin.length !== 17) {
+      return false;
+    }
+
+    // 检查字符是否合法
+    if (!/^[A-HJ-NPR-Z0-9]{17}$/.test(vin)) {
+      return false;
+    }
+
+    // 验证校验位
+    const checkDigit = this.calculateCheckDigit(vin);
+    return vin[8] === checkDigit;
+  }
+
+  // 生成VIN
+  generateVin(maxAttempts = 10) {
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const beforeStr = this.generateBeforeStr();
+        const afterStr = this.generateAfterStr();
+        const preVin = beforeStr + 'X' + afterStr;
+        const checkDigit = this.calculateCheckDigit(preVin);
+        const vin = beforeStr + checkDigit + afterStr;
+
+        if (this.validateVin(vin)) {
+          return vin;
+        }
+      } catch (error) {
+        console.error('Error generating VIN:', error);
+  }
+}
+    throw new Error('Failed to generate valid VIN after maximum attempts');
   }
 }
 
-function isVin(vin) {
-  var isuredCode = getIsuredCode(vin)
-  if (vin.substring(8, 9) === isuredCode) {
-    return true
-  } else {
-    return false
-  }
-}
-
-export default getRandomVin
+// 导出生成器实例
+const vinGenerator = new VinGenerator();
+export default vinGenerator.generateVin.bind(vinGenerator);
