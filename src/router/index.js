@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
+import Home from '@/views/Home.vue'
 import Compare from '@/views/Compare.vue'
 import Vin from '@/views/Vin.vue'
 import JsonFormatter from '@/views/JsonFormatter.vue'
@@ -6,7 +7,11 @@ import JsonFormatter from '@/views/JsonFormatter.vue'
 const routes = [
   {
     path: '/',
-    redirect: '/compare'
+    name: 'Home',
+    component: Home,
+    meta: {
+      title: '首页'
+    }
   },
   {
     path: '/compare',
@@ -35,7 +40,7 @@ const routes = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes
 })
 
