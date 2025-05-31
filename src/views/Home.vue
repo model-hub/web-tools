@@ -1,7 +1,7 @@
 <template>
   <div class="home-container">
     <div class="welcome-section">
-      <h1>Web Tools</h1>
+      <h1>Tools</h1>
       <p class="subtitle">一个简单实用的在线工具集合</p>
     </div>
     

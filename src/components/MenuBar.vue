@@ -2,7 +2,7 @@
   <div class="menu-bar">
     <div class="menu-container">
       <div class="logo" @click="navigateTo('/')">
-        <span>Web Tools</span>
+        <span>Tools</span>
       </div>
       <el-menu
         mode="horizontal"
@@ -16,7 +16,7 @@
           :index="item.path"
         >
           <el-icon><component :is="item.icon" /></el-icon>
-          <span>{{ item.title }}</span>
+          <span class="menu-text">{{ item.title }}</span>
         </el-menu-item>
       </el-menu>
     </div>
@@ -145,5 +145,23 @@ export default {
 :deep(.el-icon) {
   font-size: 16px;
   line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .logo span {
+    display: none;
+  }
+
+  :deep(.el-menu-item) {
+    padding: 0 12px;
+  }
+
+  :deep(.menu-text) {
+    display: none;
+  }
+
+  :deep(.el-icon) {
+    font-size: 20px;
+  }
 }
 </style> 
