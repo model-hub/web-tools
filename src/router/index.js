@@ -3,6 +3,7 @@ import Home from '@/views/Home.vue'
 import Compare from '@/views/Compare.vue'
 import Vin from '@/views/Vin.vue'
 import JsonFormatter from '@/views/JsonFormatter.vue'
+import LogParser from '@/views/LogParser.vue'
 
 const routes = [
   {
@@ -34,7 +35,15 @@ const routes = [
     name: 'Json',
     component: JsonFormatter,
     meta: {
-      title: 'JSON格式化工具'
+      title: 'JSON 格式化工具'
+    }
+  },
+  {
+    path: '/log-parser',
+    name: 'LogParser',
+    component: LogParser,
+    meta: {
+      title: '日志解析工具'
     }
   }
 ]

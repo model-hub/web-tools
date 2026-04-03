@@ -23,14 +23,15 @@
 </template>
 
 <script>
-import { Document, Connection, List } from '@element-plus/icons-vue'
+import { Document, Connection, List, DataLine } from '@element-plus/icons-vue'
 
 export default {
   name: 'HomeView',
   components: {
     Document,
     Connection,
-    List
+    List,
+    DataLine
   },
   data() {
     return {
@@ -45,13 +46,19 @@ export default {
           title: '车架号生成工具',
           path: '/vin',
           icon: 'Connection',
-          description: '生成符合标准的车架号（VIN码）'
+          description: '生成符合标准的车架号（VIN 码）'
         },
         {
-          title: 'JSON格式化工具',
+          title: 'JSON 格式化工具',
           path: '/json',
           icon: 'List',
-          description: 'JSON数据的格式化、压缩和排序'
+          description: 'JSON 数据的格式化、压缩和排序'
+        },
+        {
+          title: '日志解析工具',
+          path: '/log-parser',
+          icon: 'DataLine',
+          description: '解析日志返回结果，生成可视化表格'
         }
       ]
     }

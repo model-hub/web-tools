@@ -26,14 +26,15 @@
 <script>
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Document, Connection, List } from '@element-plus/icons-vue'
+import { Document, Connection, List, DataLine } from '@element-plus/icons-vue'
 
 export default {
   name: 'MenuBar',
   components: {
     Document,
     Connection,
-    List
+    List,
+    DataLine
   },
   setup() {
     const route = useRoute()
@@ -51,9 +52,14 @@ export default {
         icon: 'Connection'
       },
       {
-        title: 'JSON格式化',
+        title: 'JSON 格式化',
         path: '/json',
         icon: 'List'
+      },
+      {
+        title: '日志解析',
+        path: '/log-parser',
+        icon: 'DataLine'
       }
     ]
 
