@@ -1,6 +1,10 @@
 <script>
 import { ElMessage } from 'element-plus'
 
+const DEBOUNCE_DELAY = 500
+const MIN_COLUMN_WIDTH = 150
+const DEFAULT_TABLE_NAME = '查询结果'
+
 export default {
   name: 'LogParserView',
   data() {
@@ -21,18 +25,17 @@ export default {
   },
   methods: {
     autoParse() {
-      // 防抖处理，避免频繁解析
       if (this.parseTimer) {
         clearTimeout(this.parseTimer)
       }
       
       this.parseTimer = setTimeout(() => {
         if (this.inputJson.trim()) {
-          this.parseJson(false) // 静默解析，不显示提示
+          this.parseJson(false)
         } else {
           this.clearTable()
         }
-      }, 500) // 500ms 延迟
+      }, DEBOUNCE_DELAY)
     },
 
     parseJson(showMessage = true) {
@@ -43,73 +46,16 @@ export default {
 
       try {
         const parsed = JSON.parse(this.inputJson)
+        const response = this.validateAndGetResponse(parsed)
         
-        // 检查数据结构
-        if (!parsed.data || !parsed.data.messageData || !parsed.data.messageData.executionInfos) {
-          ElMessage.error('JSON 格式不正确，缺少必要的数据结构')
-          this.clearTable()
-          return
-        }
+        if (!response) return
 
-        const executionInfos = parsed.data.messageData.executionInfos
-        
-        // 获取第一个执行信息的 response
-        if (!executionInfos[0] || !executionInfos[0].response) {
-          ElMessage.error('未找到响应数据')
-          this.clearTable()
-          return
-        }
-
-        const response = executionInfos[0].response
-        
-        // 获取表头信息
-        if (!response.columnInfos || !Array.isArray(response.columnInfos)) {
-          ElMessage.error('未找到列定义信息')
-          this.clearTable()
-          return
-        }
-
-        // 设置列信息 - 使用 minWidth 保证足够宽度
-        this.columns = response.columnInfos.map(col => ({
-          prop: col.columnName,
-          label: col.columnName,
-          minWidth: 150 // 最小宽度保证表头完整显示
-        }))
-
-        // 获取数据信息
-        if (!response.resultData || !Array.isArray(response.resultData)) {
-          ElMessage.error('未找到数据信息')
-          this.clearTable()
-          return
-        }
-
-        // 转换数据格式
-        this.tableData = response.resultData.map(row => {
-          const rowData = {}
-          this.columns.forEach(col => {
-            const cellData = row[col.prop]
-            // 更宽松的取值逻辑：只要有这个字段就取出来，null 也保留
-            if (cellData) {
-              rowData[col.prop] = cellData.value !== null && cellData.value !== undefined ? cellData.value : ''
-            } else {
-              // 如果单元格数据完全不存在，也创建一个空值
-              rowData[col.prop] = ''
-            }
-          })
-          return rowData
-        })
-
-        // 设置表名
-        this.tableName = response.statementObject || '查询结果'
+        this.columns = this.extractColumns(response.columnInfos)
+        this.tableData = this.extractTableData(response.resultData)
+        this.tableName = response.statementObject || DEFAULT_TABLE_NAME
         this.hasValidData = true
 
-        // 调试信息：输出列和数据详情
-        console.log('解析到的列:', this.columns.map(c => c.prop))
-        console.log('解析的数据条数:', this.tableData.length)
-        if (this.tableData.length > 0) {
-          console.log('第一条数据:', this.tableData[0])
-        }
-
+        this.logParseResult()
         ElMessage.success(`解析成功，共 ${this.tableData.length} 条数据`)
       } catch (e) {
         console.error('解析失败:', e)
@@ -117,6 +63,69 @@ export default {
           ElMessage.error('JSON 解析失败：' + e.message)
         }
         this.clearTable()
+      }
+    },
+
+    validateAndGetResponse(parsed) {
+      if (!parsed.data?.messageData?.executionInfos) {
+        ElMessage.error('JSON 格式不正确，缺少必要的数据结构')
+        this.clearTable()
+        return null
+      }
+
+      const executionInfos = parsed.data.messageData.executionInfos
+      
+      if (!executionInfos[0]?.response) {
+        ElMessage.error('未找到响应数据')
+        this.clearTable()
+        return null
+      }
+
+      const response = executionInfos[0].response
+      
+      if (!response.columnInfos || !Array.isArray(response.columnInfos)) {
+        ElMessage.error('未找到列定义信息')
+        this.clearTable()
+        return null
+      }
+
+      if (!response.resultData || !Array.isArray(response.resultData)) {
+        ElMessage.error('未找到数据信息')
+        this.clearTable()
+        return null
+      }
+
+      return response
+    },
+
+    extractColumns(columnInfos) {
+      return columnInfos.map(col => ({
+        prop: col.columnName,
+        label: col.columnName,
+        minWidth: MIN_COLUMN_WIDTH
+      }))
+    },
+
+    extractTableData(resultData) {
+      return resultData.map(row => {
+        const rowData = {}
+        this.columns.forEach(col => {
+          const cellData = row[col.prop]
+          if (cellData) {
+            rowData[col.prop] = cellData.value !== null && cellData.value !== undefined ? cellData.value : ''
+          } else {
+            rowData[col.prop] = ''
+          }
+        })
+        return rowData
+      })
+    },
+
+    logParseResult() {
+      console.log('解析到的列:', this.columns.map(c => c.prop))
+      console.log('解析的数据条数:', this.tableData.length)
+      if (this.tableData.length > 0) {
+        console.log('第一条数据:', this.tableData[0])
       }
     },
 
@@ -133,43 +142,7 @@ export default {
       this.columns = []
       this.tableName = ''
       this.hasValidData = false
-    },
-
-    async copyTableData() {
-      if (!this.hasValidData || this.tableData.length === 0) {
-        ElMessage.warning('当前没有可复制的数据')
-        return
-      }
-
-      try {
-        // 转换为 CSV 格式
-        const headers = this.columns.map(col => col.label).join('\t')
-        const rows = this.tableData.map(row => 
-          this.columns.map(col => row[col.prop] || '').join('\t')
-        ).join('\n')
-        const csvContent = headers + '\n' + rows
-
-        await copyText(csvContent)
-        ElMessage.success('表格数据已复制到剪贴板（CSV 格式）')
-      } catch (err) {
-        console.error('复制失败:', err)
-        ElMessage.error('复制失败，请手动复制')
-      }
-    },
-
-    handleCellClick(row, column, cell, event) {
-      // 单击单元格时复制内容
-      const cellValue = row[column.property]
-      if (cellValue) {
-        copyText(cellValue).then(() => {
-          ElMessage.success('单元格内容已复制')
-        }).catch(() => {
-          ElMessage.error('复制失败')
-        })
-      }
-    },
-
-
+    }
   }
 }
 </script>
@@ -218,6 +191,7 @@ export default {
             :label="col.label"
             :min-width="col.minWidth"
             show-overflow-tooltip
+            align="center"
           >
             <template #default="{ row }">
               <el-input
@@ -273,10 +247,6 @@ export default {
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-}
-
-.input-section h3 {
-  margin-bottom: 6px;
 }
 
 .table-section {
@@ -354,17 +324,15 @@ export default {
 }
 
 :deep(.el-table__cell) {
-  padding: 4px 0; /* 减小单元格内边距 */
+  padding: 4px 0;
 }
 
-/* 表头单元格增加内边距 */
 :deep(.el-table__header .el-table__cell) {
   padding: 12px 8px !important;
   height: 48px !important;
   line-height: 1.2 !important;
 }
 
-/* 可编辑表格样式 */
 .editable-table .cell-input {
   width: 100%;
 }
@@ -372,7 +340,7 @@ export default {
 :deep(.cell-input .el-textarea__inner) {
   border: none;
   box-shadow: none;
-  padding: 0 8px; /* 减小上下内边距 */
+  padding: 0 8px;
   resize: none;
   font-family: inherit;
   font-size: inherit;
@@ -383,7 +351,9 @@ export default {
   height: auto !important;
   min-height: auto !important;
   display: flex;
-  align-items: center; /* 垂直居中 */
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 :deep(.cell-input .el-textarea__inner:hover) {
@@ -395,64 +365,52 @@ export default {
   box-shadow: 0 0 0 1px var(--primary-color) inset;
 }
 
-/* 固定表格行高 - 减小行高 */
 .editable-table .el-table__row td {
   height: 32px !important;
   max-height: 32px !important;
-  vertical-align: middle !important; /* 垂直居中 */
+  vertical-align: middle !important;
 }
 
 .editable-table .el-table__row .cell-input {
   height: 32px !important;
   display: flex;
-  align-items: center; /* 垂直居中 */
+  align-items: center;
 }
 
 .editable-table .el-table__row .cell-input .el-textarea {
   height: 32px !important;
   display: flex;
-  align-items: center; /* 垂直居中 */
+  align-items: center;
 }
 
 .editable-table .el-table__row .cell-input .el-textarea__inner {
   height: 32px !important;
   line-height: 1.5;
   display: flex;
-  align-items: center; /* 垂直居中 */
+  align-items: center;
 }
 
-/* 表头和内容自适应宽度 */
 .fit-content {
   table-layout: auto !important;
+  width: 100%;
 }
 
-/* 表头和单元格样式优化 */
-.editable-table.fit-content .el-table__header th.el-table__cell {
-  word-break: keep-all !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  padding: 12px 8px !important;
-  height: 48px !important; /* 固定表头高度 */
-  line-height: 1.2 !important;
-}
-
-/* 确保表头内容完整显示 */
-.editable-table.fit-content .el-table__header .cell {
-  word-break: keep-all !important;
-  white-space: nowrap !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-  line-height: 1.2 !important;
-}
-
-/* 针对 Element Plus 的 cell 类 - 表头和内容都隐藏溢出 */
+.editable-table.fit-content .el-table__header th.el-table__cell,
 .editable-table.fit-content .el-table__header .el-table__cell {
   word-break: keep-all !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  padding: 12px 8px !important;
   height: 48px !important;
+  line-height: 1.2 !important;
+}
+
+.editable-table.fit-content .el-table__header .cell {
+  word-break: keep-all !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
   line-height: 1.2 !important;
 }
 
@@ -463,15 +421,9 @@ export default {
   text-overflow: ellipsis !important;
 }
 
-/* 输入框内部也强制不换行 */
 .editable-table.fit-content .cell-input .el-textarea__inner {
   word-break: keep-all !important;
   white-space: nowrap !important;
   overflow: hidden !important;
-}
-
-/* 确保表格列宽自适应 */
-.editable-table.fit-content {
-  width: 100%;
 }
 </style>
